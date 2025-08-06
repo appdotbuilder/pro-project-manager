@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Models;
+
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string $password
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Company> $companies
+ * @property-read int|null $companies_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectUser> $projectUsers
+ * @property-read int|null $project_users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Rab> $uploadedRabs
+ * @property-read int|null $uploaded_rabs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Rab> $approvedRabs
+ * @property-read int|null $approved_rabs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DailyActivity> $dailyActivities
+ * @property-read int|null $daily_activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DailyActivity> $approvedActivities
+ * @property-read int|null $approved_activities_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\DailyReport> $generatedReports
+ * @property-read int|null $generated_reports_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * 
+ * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder|User newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|User newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|User query()
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereEmailVerifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
+ * 
+ * @mixin \Eloquent
+ */
+class User extends Authenticatable
+{
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * Get the companies associated with the user.
+     */
+    public function companies(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')
+            ->withPivot(['status', 'joined_at'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the project users for the user.
+     */
+    public function projectUsers(): HasMany
+    {
+        return $this->hasMany(ProjectUser::class);
+    }
+
+    /**
+     * Get the RABs uploaded by the user.
+     */
+    public function uploadedRabs(): HasMany
+    {
+        return $this->hasMany(Rab::class, 'uploaded_by');
+    }
+
+    /**
+     * Get the RABs approved by the user.
+     */
+    public function approvedRabs(): HasMany
+    {
+        return $this->hasMany(Rab::class, 'approved_by');
+    }
+
+    /**
+     * Get the daily activities for the user.
+     */
+    public function dailyActivities(): HasMany
+    {
+        return $this->hasMany(DailyActivity::class);
+    }
+
+    /**
+     * Get the daily activities approved by the user.
+     */
+    public function approvedActivities(): HasMany
+    {
+        return $this->hasMany(DailyActivity::class, 'approved_by');
+    }
+
+    /**
+     * Get the daily reports generated by the user.
+     */
+    public function generatedReports(): HasMany
+    {
+        return $this->hasMany(DailyReport::class, 'generated_by');
+    }
+}
